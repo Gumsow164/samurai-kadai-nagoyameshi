@@ -9,6 +9,12 @@ terraform {
       version = "~> 5.0"
     }
   }
+  backend "s3" {
+    bucket  = "nagoyameshi-prod-tfstate-0929-gotou"
+    key     = "nagoyameshi-prod-tfstate"
+    region  = "ap-northeast-1"
+    profile = "terraform"
+  }
 }
 #----------------------------------------------------------
 # Provider
