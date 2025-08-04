@@ -58,6 +58,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_prod" {
       image     = "181438959772.dkr.ecr.ap-northeast-1.amazonaws.com/nagoyameshi-${var.environment}-ecr-repository:latest"
       essential = true
       cpu       = 0
+      command   = ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=80"]
       portMappings = [
         {
           name          = "laravel-app"
