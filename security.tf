@@ -161,6 +161,16 @@ resource "aws_security_group_rule" "db_sg_tcp3306" {
   security_group_id        = aws_security_group.db_sg_prod.id
 }
 
+# 踏み台サーバーからRDSへのアクセスを許可
+resource "aws_security_group_rule" "db_sg_tcp3306_from_opmng" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.opmng_sg_prod.id
+  security_group_id        = aws_security_group.db_sg_prod.id
+}
+
 #----------------------------------------------------------
 # ECS service security group
 #----------------------------------------------------------

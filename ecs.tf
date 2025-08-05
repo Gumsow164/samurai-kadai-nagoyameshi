@@ -42,6 +42,54 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_prod" 
 }
 
 #----------------------------------------------------------
+# ECS task role for execute command
+#----------------------------------------------------------
+resource "aws_iam_role" "ecs_task_role_prod" {
+  name = "${var.project_name}-${var.environment}-ecs-task-role-prod"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-ecs-task-role-prod"
+    project     = var.project_name
+    environment = var.environment
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_role_policy_prod" {
+  name = "${var.project_name}-${var.environment}-ecs-task-role-policy-prod"
+  role = aws_iam_role.ecs_task_role_prod.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:UpdateSSMAgentStatus",
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+#----------------------------------------------------------
 # ECS task definition for Laravel application
 #----------------------------------------------------------
 resource "aws_ecs_task_definition" "laravel_app_task_prod" {
@@ -51,6 +99,8 @@ resource "aws_ecs_task_definition" "laravel_app_task_prod" {
   cpu                      = "256"
   memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role_prod.arn
+  task_role_arn            = aws_iam_role.ecs_task_role_prod.arn
+
 
   container_definitions = jsonencode([
     {
@@ -123,11 +173,12 @@ resource "aws_ecs_task_definition" "laravel_app_task_prod" {
 }
 
 resource "aws_ecs_service" "ecs_service_prod" {
-  name            = "${var.project_name}-${var.environment}-ecs-service-prod"
-  cluster         = aws_ecs_cluster.ecs_cluster_prod.id
-  task_definition = aws_ecs_task_definition.laravel_app_task_prod.arn
-  desired_count   = 1
-  launch_type     = "FARGATE"
+  name                   = "${var.project_name}-${var.environment}-ecs-service-prod"
+  cluster                = aws_ecs_cluster.ecs_cluster_prod.id
+  task_definition        = aws_ecs_task_definition.laravel_app_task_prod.arn
+  desired_count          = 1
+  launch_type            = "FARGATE"
+  enable_execute_command = true
 
   network_configuration {
     subnets          = [aws_subnet.public_subnet_prod_1a.id, aws_subnet.public_subnet_prod_1c.id]
