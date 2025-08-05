@@ -185,6 +185,15 @@ resource "aws_ecs_service" "ecs_service_prod" {
     security_groups  = [aws_security_group.ecs_service_security_group_prod.id]
     assign_public_ip = true
   }
+
+  # ALBとの連携を追加
+  load_balancer {
+    target_group_arn = aws_lb_target_group.alb_tg_prod_v2.arn
+    container_name   = "laravel-app"
+    container_port   = 80
+  }
+
+  depends_on = [aws_lb_listener.alb_listener_prod_v2]
 }
 
 #----------------------------------------------------------
