@@ -50,6 +50,16 @@ resource "aws_security_group_rule" "web_out_tcp80" {
   security_group_id        = aws_security_group.web_sg_prod.id
 }
 
+resource "aws_security_group_rule" "web_sg_egress_all" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.web_sg_prod.id
+}
+
+
 
 # app security group
 resource "aws_security_group" "app_sg_prod" {
@@ -180,6 +190,16 @@ resource "aws_security_group_rule" "db_sg_tcp3306_from_opmng" {
   source_security_group_id = aws_security_group.opmng_sg_prod.id
   security_group_id        = aws_security_group.db_sg_prod.id
 }
+
+resource "aws_security_group_rule" "db_sg_tcp3306_from_ecs" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.ecs_service_security_group_prod.id
+  security_group_id        = aws_security_group.db_sg_prod.id
+}
+
 
 #----------------------------------------------------------
 # ECS service security group

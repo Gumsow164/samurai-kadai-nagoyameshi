@@ -133,7 +133,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_prod" {
         },
         {
           name  = "DB_HOST"
-          value = aws_db_instance.mysql_prod.address
+          value = "nagoyameshi-prod-mysql-prod.cdgeew22q4ur.ap-northeast-1.rds.amazonaws.com"
         },
         {
           name  = "APP_DEBUG"
