@@ -41,6 +41,16 @@ resource "aws_security_group_rule" "web_out_tcp3000" {
   security_group_id        = aws_security_group.web_sg_prod.id
 }
 
+resource "aws_security_group_rule" "web_out_tcp80" {
+  type                     = "egress"
+  from_port                = 80
+  to_port                  = 80
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.app_sg_prod.id
+  security_group_id        = aws_security_group.web_sg_prod.id
+}
+
+
 # app security group
 resource "aws_security_group" "app_sg_prod" {
   name        = "${var.project_name}-${var.environment}-app-sg"

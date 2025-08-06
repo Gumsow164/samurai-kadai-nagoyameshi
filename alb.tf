@@ -25,7 +25,7 @@ resource "aws_lb_target_group" "alb_tg_prod_v2" {
   port        = 80
   protocol    = "HTTP"
   vpc_id      = aws_vpc.vpc_prod.id
-  target_type = "ip"  # Fargate用にIPターゲットタイプを指定
+  target_type = "ip" # Fargate用にIPターゲットタイプを指定
 
   health_check {
     enabled             = true
@@ -85,7 +85,7 @@ resource "aws_appautoscaling_policy" "ecs_cpu_policy" {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageCPUUtilization"
     }
-    target_value = 70.0
+    target_value       = 70.0
     scale_in_cooldown  = 300
     scale_out_cooldown = 300
   }
@@ -105,7 +105,7 @@ resource "aws_appautoscaling_policy" "ecs_memory_policy" {
     predefined_metric_specification {
       predefined_metric_type = "ECSServiceAverageMemoryUtilization"
     }
-    target_value = 70.0
+    target_value       = 70.0
     scale_in_cooldown  = 300
     scale_out_cooldown = 300
   }
