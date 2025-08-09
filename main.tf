@@ -10,12 +10,14 @@ terraform {
     }
   }
   backend "s3" {
-    bucket  = "nagoyameshi-prod-tfstate-0929-gotou"
-    key     = "nagoyameshi-prod-tfstate"
+    bucket  = "nagoyameshi-dev-tfstate-v3-gotou-1192"
+    key     = "nagoyameshi-dev-tfstate.tfstate"
     region  = "ap-northeast-1"
     profile = "terraform"
   }
 }
+
+
 #----------------------------------------------------------
 # Provider
 #----------------------------------------------------------

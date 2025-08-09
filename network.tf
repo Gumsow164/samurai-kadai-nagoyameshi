@@ -1,7 +1,7 @@
 #----------------------------------------------------------
 # VPC
 #----------------------------------------------------------
-resource "aws_vpc" "vpc_prod" {
+resource "aws_vpc" "vpc_dev" {
   cidr_block                       = "192.168.0.0/20"
   instance_tenancy                 = "default"
   enable_dns_support               = true
@@ -18,8 +18,8 @@ resource "aws_vpc" "vpc_prod" {
 #----------------------------------------------------------
 # Subnet
 #----------------------------------------------------------
-resource "aws_subnet" "public_subnet_prod_1a" {
-  vpc_id                  = aws_vpc.vpc_prod.id
+resource "aws_subnet" "public_subnet_dev_1a" {
+  vpc_id                  = aws_vpc.vpc_dev.id
   cidr_block              = "192.168.1.0/24"
   availability_zone       = "ap-northeast-1a"
   map_public_ip_on_launch = true
@@ -32,8 +32,8 @@ resource "aws_subnet" "public_subnet_prod_1a" {
   }
 }
 
-resource "aws_subnet" "public_subnet_prod_1c" {
-  vpc_id                  = aws_vpc.vpc_prod.id
+resource "aws_subnet" "public_subnet_dev_1c" {
+  vpc_id                  = aws_vpc.vpc_dev.id
   cidr_block              = "192.168.2.0/24"
   availability_zone       = "ap-northeast-1c"
   map_public_ip_on_launch = true
@@ -46,8 +46,8 @@ resource "aws_subnet" "public_subnet_prod_1c" {
   }
 }
 
-resource "aws_subnet" "private_subnet_prod_1a" {
-  vpc_id                  = aws_vpc.vpc_prod.id
+resource "aws_subnet" "private_subnet_dev_1a" {
+  vpc_id                  = aws_vpc.vpc_dev.id
   cidr_block              = "192.168.4.0/24"
   availability_zone       = "ap-northeast-1a"
   map_public_ip_on_launch = false
@@ -59,8 +59,8 @@ resource "aws_subnet" "private_subnet_prod_1a" {
     type        = "private"
   }
 }
-resource "aws_subnet" "private_subnet_prod_1c" {
-  vpc_id                  = aws_vpc.vpc_prod.id
+resource "aws_subnet" "private_subnet_dev_1c" {
+  vpc_id                  = aws_vpc.vpc_dev.id
   cidr_block              = "192.168.3.0/24"
   availability_zone       = "ap-northeast-1c"
   map_public_ip_on_launch = false
@@ -75,8 +75,8 @@ resource "aws_subnet" "private_subnet_prod_1c" {
 #----------------------------------------------------------
 # Route Table
 #----------------------------------------------------------
-resource "aws_route_table" "public_route_table_prod_1a" {
-  vpc_id = aws_vpc.vpc_prod.id
+resource "aws_route_table" "public_route_table_dev_1a" {
+  vpc_id = aws_vpc.vpc_dev.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-public-route-table"
@@ -86,13 +86,13 @@ resource "aws_route_table" "public_route_table_prod_1a" {
   }
 }
 
-resource "aws_route_table_association" "public_route_table_prod_1a" {
-  route_table_id = aws_route_table.public_route_table_prod_1a.id
-  subnet_id      = aws_subnet.public_subnet_prod_1a.id
+resource "aws_route_table_association" "public_route_table_dev_1a" {
+  route_table_id = aws_route_table.public_route_table_dev_1a.id
+  subnet_id      = aws_subnet.public_subnet_dev_1a.id
 }
 
-resource "aws_route_table" "public_route_table_prod_1c" {
-  vpc_id = aws_vpc.vpc_prod.id
+resource "aws_route_table" "public_route_table_dev_1c" {
+  vpc_id = aws_vpc.vpc_dev.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-public-route-table"
@@ -102,13 +102,13 @@ resource "aws_route_table" "public_route_table_prod_1c" {
   }
 }
 
-resource "aws_route_table_association" "public_route_table_prod_1c" {
-  route_table_id = aws_route_table.public_route_table_prod_1c.id
-  subnet_id      = aws_subnet.public_subnet_prod_1c.id
+resource "aws_route_table_association" "public_route_table_dev_1c" {
+  route_table_id = aws_route_table.public_route_table_dev_1c.id
+  subnet_id      = aws_subnet.public_subnet_dev_1c.id
 }
 
-resource "aws_route_table" "private_route_table_prod_1a" {
-  vpc_id = aws_vpc.vpc_prod.id
+resource "aws_route_table" "private_route_table_dev_1a" {
+  vpc_id = aws_vpc.vpc_dev.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-private-route-table-1a"
@@ -118,13 +118,13 @@ resource "aws_route_table" "private_route_table_prod_1a" {
   }
 }
 
-resource "aws_route_table_association" "private_route_table_prod_1a" {
-  route_table_id = aws_route_table.private_route_table_prod_1a.id
-  subnet_id      = aws_subnet.private_subnet_prod_1a.id
+resource "aws_route_table_association" "private_route_table_dev_1a" {
+  route_table_id = aws_route_table.private_route_table_dev_1a.id
+  subnet_id      = aws_subnet.private_subnet_dev_1a.id
 }
 
-resource "aws_route_table" "private_route_table_prod_1c" {
-  vpc_id = aws_vpc.vpc_prod.id
+resource "aws_route_table" "private_route_table_dev_1c" {
+  vpc_id = aws_vpc.vpc_dev.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-private-route-table-1c"
@@ -134,16 +134,16 @@ resource "aws_route_table" "private_route_table_prod_1c" {
   }
 }
 
-resource "aws_route_table_association" "private_route_table_prod_1c" {
-  route_table_id = aws_route_table.private_route_table_prod_1c.id
-  subnet_id      = aws_subnet.private_subnet_prod_1c.id
+resource "aws_route_table_association" "private_route_table_dev_1c" {
+  route_table_id = aws_route_table.private_route_table_dev_1c.id
+  subnet_id      = aws_subnet.private_subnet_dev_1c.id
 }
 
 #----------------------------------------------------------
 # Internet Gateway
 #----------------------------------------------------------
-resource "aws_internet_gateway" "igw_prod" {
-  vpc_id = aws_vpc.vpc_prod.id
+resource "aws_internet_gateway" "igw_dev" {
+  vpc_id = aws_vpc.vpc_dev.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-igw"
@@ -152,14 +152,14 @@ resource "aws_internet_gateway" "igw_prod" {
   }
 }
 
-resource "aws_route" "public_rt_igw_prod_1a" {
-  route_table_id         = aws_route_table.public_route_table_prod_1a.id
+resource "aws_route" "public_rt_igw_dev_1a" {
+  route_table_id         = aws_route_table.public_route_table_dev_1a.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw_prod.id
+  gateway_id             = aws_internet_gateway.igw_dev.id
 }
 
-resource "aws_route" "public_rt_igw_prod_1c" {
-  route_table_id         = aws_route_table.public_route_table_prod_1c.id
+resource "aws_route" "public_rt_igw_dev_1c" {
+  route_table_id         = aws_route_table.public_route_table_dev_1c.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw_prod.id
+  gateway_id             = aws_internet_gateway.igw_dev.id
 }

@@ -1,10 +1,10 @@
 #----------------------------------------------------------
 # ECS cluster
 #----------------------------------------------------------
-resource "aws_ecs_cluster" "ecs_cluster_prod" {
-  name = "${var.project_name}-${var.environment}-ecs-cluster-prod"
+resource "aws_ecs_cluster" "ecs_cluster_dev" {
+  name = "${var.project_name}-${var.environment}-ecs-cluster-dev"
   tags = {
-    Name        = "${var.project_name}-${var.environment}-ecs-cluster-prod"
+    Name        = "${var.project_name}-${var.environment}-ecs-cluster-dev"
     project     = var.project_name
     environment = var.environment
   }
@@ -13,8 +13,8 @@ resource "aws_ecs_cluster" "ecs_cluster_prod" {
 #----------------------------------------------------------
 # ECS task execution role
 #----------------------------------------------------------
-resource "aws_iam_role" "ecs_task_execution_role_prod" {
-  name = "${var.project_name}-${var.environment}-ecs-task-execution-role-prod"
+resource "aws_iam_role" "ecs_task_execution_role_dev" {
+  name = "${var.project_name}-${var.environment}-ecs-task-execution-role-dev"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -30,22 +30,22 @@ resource "aws_iam_role" "ecs_task_execution_role_prod" {
   })
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-ecs-task-execution-role-prod"
+    Name        = "${var.project_name}-${var.environment}-ecs-task-execution-role-dev"
     project     = var.project_name
     environment = var.environment
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_prod" {
-  role       = aws_iam_role.ecs_task_execution_role_prod.name
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_dev" {
+  role       = aws_iam_role.ecs_task_execution_role_dev.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 #----------------------------------------------------------
 # ECS task role for execute command
 #----------------------------------------------------------
-resource "aws_iam_role" "ecs_task_role_prod" {
-  name = "${var.project_name}-${var.environment}-ecs-task-role-prod"
+resource "aws_iam_role" "ecs_task_role_dev" {
+  name = "${var.project_name}-${var.environment}-ecs-task-role-dev"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -61,15 +61,15 @@ resource "aws_iam_role" "ecs_task_role_prod" {
   })
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-ecs-task-role-prod"
+    Name        = "${var.project_name}-${var.environment}-ecs-task-role-dev"
     project     = var.project_name
     environment = var.environment
   }
 }
 
-resource "aws_iam_role_policy" "ecs_task_role_policy_prod" {
-  name = "${var.project_name}-${var.environment}-ecs-task-role-policy-prod"
-  role = aws_iam_role.ecs_task_role_prod.id
+resource "aws_iam_role_policy" "ecs_task_role_policy_dev" {
+  name = "${var.project_name}-${var.environment}-ecs-task-role-policy-dev"
+  role = aws_iam_role.ecs_task_role_dev.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -92,20 +92,20 @@ resource "aws_iam_role_policy" "ecs_task_role_policy_prod" {
 #----------------------------------------------------------
 # ECS task definition for Laravel application
 #----------------------------------------------------------
-resource "aws_ecs_task_definition" "laravel_app_task_prod" {
-  family                   = "laravel-app-task-prod"
+resource "aws_ecs_task_definition" "laravel_app_task_dev" {
+  family                   = "laravel-app-task-dev"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "256"
   memory                   = "512"
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role_prod.arn
-  task_role_arn            = aws_iam_role.ecs_task_role_prod.arn
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role_dev.arn
+  task_role_arn            = aws_iam_role.ecs_task_role_dev.arn
 
 
   container_definitions = jsonencode([
     {
       name      = "laravel-app"
-      image     = "181438959772.dkr.ecr.ap-northeast-1.amazonaws.com/nagoyameshi-${var.environment}-ecr-repository:latest"
+      image     = "${aws_ecr_repository.ecr_repository_dev.repository_url}:latest"
       essential = true
       cpu       = 0
       command   = ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=80"]
@@ -125,7 +125,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_prod" {
         },
         {
           name  = "DB_USERNAME"
-          value = aws_db_instance.mysql_prod.username
+          value = aws_db_instance.mysql_dev.username
         },
         {
           name  = "DB_PORT"
@@ -133,7 +133,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_prod" {
         },
         {
           name  = "DB_HOST"
-          value = aws_db_instance.mysql_prod.address
+          value = aws_db_instance.mysql_dev.address
         },
         {
           name  = "DB_CONNECTION"
@@ -145,17 +145,17 @@ resource "aws_ecs_task_definition" "laravel_app_task_prod" {
         },
         {
           name  = "DB_DATABASE"
-          value = aws_db_instance.mysql_prod.db_name
+          value = aws_db_instance.mysql_dev.db_name
         },
         {
           name  = "DB_PASSWORD"
-          value = aws_db_instance.mysql_prod.password
+          value = aws_db_instance.mysql_dev.password
         }
       ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/ecs/laravel-app-prod"
+          awslogs-group         = "/ecs/laravel-app-${var.environment}"
           awslogs-create-group  = "true"
           awslogs-region        = "ap-northeast-1"
           awslogs-stream-prefix = "ecs"
@@ -176,40 +176,40 @@ resource "aws_ecs_task_definition" "laravel_app_task_prod" {
   }
 }
 
-resource "aws_ecs_service" "ecs_service_prod" {
-  name                   = "${var.project_name}-${var.environment}-ecs-service-prod"
-  cluster                = aws_ecs_cluster.ecs_cluster_prod.id
-  task_definition        = aws_ecs_task_definition.laravel_app_task_prod.arn
+resource "aws_ecs_service" "ecs_service_dev" {
+  name                   = "${var.project_name}-${var.environment}-ecs-service-dev"
+  cluster                = aws_ecs_cluster.ecs_cluster_dev.id
+  task_definition        = aws_ecs_task_definition.laravel_app_task_dev.arn
   desired_count          = 1
   launch_type            = "FARGATE"
   enable_execute_command = true
 
   network_configuration {
-    subnets          = [aws_subnet.public_subnet_prod_1a.id, aws_subnet.public_subnet_prod_1c.id]
-    security_groups  = [aws_security_group.ecs_service_security_group_prod.id]
+    subnets          = [aws_subnet.public_subnet_dev_1a.id, aws_subnet.public_subnet_dev_1c.id]
+    security_groups  = [aws_security_group.ecs_service_security_group_dev.id]
     assign_public_ip = true
   }
 
   # ALBとの連携を追加
   load_balancer {
-    target_group_arn = aws_lb_target_group.alb_tg_prod_v2.arn
+    target_group_arn = aws_lb_target_group.alb_tg_dev_v2.arn
     container_name   = "laravel-app"
     container_port   = 80
   }
 
-  depends_on = [aws_lb_listener.alb_listener_prod_v2]
+  depends_on = [aws_lb_listener.alb_listener_dev_v2]
 }
 
 #----------------------------------------------------------
 # ECR repository
 #----------------------------------------------------------
-resource "aws_ecr_repository" "ecr_repository_prod" {
-  name                 = "${var.project_name}-${var.environment}-ecr-repository-prod"
+resource "aws_ecr_repository" "ecr_repository_dev" {
+  name                 = "${var.project_name}-${var.environment}-ecr-repository-dev"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration { scan_on_push = true }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-ecr-repository-prod"
+    Name        = "${var.project_name}-${var.environment}-ecr-repository-dev"
     project     = var.project_name
     environment = var.environment
   }
@@ -218,8 +218,8 @@ resource "aws_ecr_repository" "ecr_repository_prod" {
 #----------------------------------------------------------
 # ECR lifecycle policy
 #----------------------------------------------------------
-resource "aws_ecr_lifecycle_policy" "ecr_lifecycle_policy_prod" {
-  repository = aws_ecr_repository.ecr_repository_prod.name
+resource "aws_ecr_lifecycle_policy" "ecr_lifecycle_policy_dev" {
+  repository = aws_ecr_repository.ecr_repository_dev.name
 
   policy = jsonencode({
     rules = [
