@@ -8,8 +8,12 @@ resource "aws_ecs_cluster" "ecs_cluster_dev" {
     project     = var.project_name
     environment = var.environment
   }
+  configuration {
+    execute_command_configuration {
+      logging = "DEFAULT"
+    }
+  }
 }
-
 #----------------------------------------------------------
 # ECS task execution role
 #----------------------------------------------------------
@@ -39,6 +43,12 @@ resource "aws_iam_role" "ecs_task_execution_role_dev" {
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_dev" {
   role       = aws_iam_role.ecs_task_execution_role_dev.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# タスク実行ロールにAmazonSSMManagedInstanceCoreを追加
+resource "aws_iam_role_policy_attachment" "ecs_ssm_managed_instance_core_dev" {
+  role       = aws_iam_role.ecs_task_execution_role_dev.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 #----------------------------------------------------------
@@ -109,6 +119,11 @@ resource "aws_ecs_task_definition" "laravel_app_task_dev" {
       essential = true
       cpu       = 0
       command   = ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=80"]
+      linuxParameters = {
+        initProcessEnabled = true
+      }
+      interactive    = true
+      pseudoTerminal = true
       portMappings = [
         {
           name          = "laravel-app"
@@ -145,7 +160,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_dev" {
         },
         {
           name  = "DB_DATABASE"
-          value = aws_db_instance.mysql_dev.db_name
+          value = "nagoyameshi_dev"
         },
         {
           name  = "DB_PASSWORD"
@@ -177,7 +192,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_dev" {
 }
 
 resource "aws_ecs_service" "ecs_service_dev" {
-  name                   = "${var.project_name}-${var.environment}-ecs-service-dev"
+  name                   = "aa-laravel-app-task-dev-neo-service-hx2wa01b"
   cluster                = aws_ecs_cluster.ecs_cluster_dev.id
   task_definition        = aws_ecs_task_definition.laravel_app_task_dev.arn
   desired_count          = 1
