@@ -163,3 +163,44 @@ resource "aws_route" "public_rt_igw_dev_1c" {
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.igw_dev.id
 }
+
+#----------------------------------------------------------
+# NAT Gateway
+#----------------------------------------------------------
+resource "aws_eip" "nat_eip_dev" {
+  domain = "vpc"
+  
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-nat-eip"
+    project     = var.project_name
+    environment = var.environment
+  }
+}
+
+resource "aws_nat_gateway" "nat_gateway_dev" {
+  allocation_id = aws_eip.nat_eip_dev.id
+  subnet_id     = aws_subnet.public_subnet_dev_1a.id
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-nat-gateway"
+    project     = var.project_name
+    environment = var.environment
+  }
+
+  depends_on = [aws_internet_gateway.igw_dev]
+}
+
+#----------------------------------------------------------
+# Private Route Table Routes (NAT Gateway)
+#----------------------------------------------------------
+resource "aws_route" "private_rt_nat_dev_1a" {
+  route_table_id         = aws_route_table.private_route_table_dev_1a.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat_gateway_dev.id
+}
+
+resource "aws_route" "private_rt_nat_dev_1c" {
+  route_table_id         = aws_route_table.private_route_table_dev_1c.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat_gateway_dev.id
+}

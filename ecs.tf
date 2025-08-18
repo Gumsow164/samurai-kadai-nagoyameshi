@@ -51,6 +51,40 @@ resource "aws_iam_role_policy_attachment" "ecs_ssm_managed_instance_core_dev" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+# CodePipelineからのECSデプロイ権限を追加
+resource "aws_iam_role_policy" "ecs_task_execution_codepipeline_policy" {
+  name = "${var.project_name}-${var.environment}-ecs-task-execution-codepipeline-policy"
+  role = aws_iam_role.ecs_task_execution_role_dev.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecs:DescribeServices",
+          "ecs:DescribeTaskDefinition",
+          "ecs:DescribeTasks",
+          "ecs:ListTasks",
+          "ecs:RegisterTaskDefinition",
+          "ecs:UpdateService"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:PassRole"
+        ]
+        Resource = [
+          aws_iam_role.ecs_task_execution_role_dev.arn,
+          aws_iam_role.ecs_task_role_dev.arn
+        ]
+      }
+    ]
+  })
+}
+
 #----------------------------------------------------------
 # ECS task role for execute command
 #----------------------------------------------------------
@@ -103,7 +137,7 @@ resource "aws_iam_role_policy" "ecs_task_role_policy_dev" {
 # ECS task definition for Laravel application
 #----------------------------------------------------------
 resource "aws_ecs_task_definition" "laravel_app_task_dev" {
-  family                   = "laravel-app-task-dev"
+  family                   = "aa-laravel-app-task-dev-neo"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "256"
@@ -148,7 +182,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_dev" {
         },
         {
           name  = "DB_HOST"
-          value = aws_db_instance.mysql_dev.address
+          value = "nagoyameshi-dev-mysql-dev.cdgeew22q4ur.ap-northeast-1.rds.amazonaws.com"
         },
         {
           name  = "DB_CONNECTION"
@@ -160,7 +194,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_dev" {
         },
         {
           name  = "DB_DATABASE"
-          value = "nagoyameshi_dev"
+          value = "nagoyameshi_db"
         },
         {
           name  = "DB_PASSWORD"
@@ -200,9 +234,9 @@ resource "aws_ecs_service" "ecs_service_dev" {
   enable_execute_command = true
 
   network_configuration {
-    subnets          = [aws_subnet.public_subnet_dev_1a.id, aws_subnet.public_subnet_dev_1c.id]
+    subnets          = [aws_subnet.private_subnet_dev_1a.id, aws_subnet.private_subnet_dev_1c.id]
     security_groups  = [aws_security_group.ecs_service_security_group_dev.id]
-    assign_public_ip = true
+    assign_public_ip = false
   }
 
   # ALBとの連携を追加
@@ -243,12 +277,104 @@ resource "aws_ecr_lifecycle_policy" "ecr_lifecycle_policy_dev" {
         description  = "Keep only the last 10 images",
         selection = {
           tagStatus   = "any"
-          countType   = "imageCountMoreThan",
+          countType   = "imageCountMoreThan"
           countNumber = 10
         },
         action = {
           type = "expire"
         }
+      }
+    ]
+  })
+}
+
+#----------------------------------------------------------
+# CodePipeline IAM Role
+#----------------------------------------------------------
+resource "aws_iam_role" "codepipeline_role" {
+  name = "${var.project_name}-${var.environment}-codepipeline-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "codepipeline.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-codepipeline-role"
+    project     = var.project_name
+    environment = var.environment
+  }
+}
+
+resource "aws_iam_role_policy" "codepipeline_policy" {
+  name = "${var.project_name}-${var.environment}-codepipeline-policy"
+  role = aws_iam_role.codepipeline_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:GetBucketVersioning",
+          "s3:PutObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::codepipeline-*",
+          "arn:aws:s3:::codepipeline-*/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "codebuild:BatchGetBuilds",
+          "codebuild:StartBuild"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ecs:DescribeServices",
+          "ecs:DescribeTaskDefinition",
+          "ecs:DescribeTasks",
+          "ecs:ListTasks",
+          "ecs:RegisterTaskDefinition",
+          "ecs:UpdateService",
+          "ecs:RunTask",
+          "ecs:StopTask"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:PassRole"
+        ]
+        Resource = [
+          aws_iam_role.ecs_task_execution_role_dev.arn,
+          aws_iam_role.ecs_task_role_dev.arn
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage"
+        ]
+        Resource = "*"
       }
     ]
   })

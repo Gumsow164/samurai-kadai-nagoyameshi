@@ -83,6 +83,7 @@ resource "aws_db_instance" "mysql_dev" {
 
   deletion_protection = true
   skip_final_snapshot = false
+  final_snapshot_identifier = "${var.project_name}-${var.environment}-mysql-final-snapshot"
 
   apply_immediately = true
 
