@@ -1,7 +1,7 @@
 #----------------------------------------------------------
 # RDS parameter group
 #----------------------------------------------------------
-resource "aws_db_parameter_group" "mysql_pg_dev" {
+resource "aws_db_parameter_group" "mysql_pg" {
   name   = "${var.project_name}-${var.environment}-mysql-pg"
   family = "mysql8.0"
 
@@ -19,7 +19,7 @@ resource "aws_db_parameter_group" "mysql_pg_dev" {
 #----------------------------------------------------------
 # RDS option group
 #----------------------------------------------------------
-resource "aws_db_option_group" "mysql_og_dev" {
+resource "aws_db_option_group" "mysql_og" {
   name                 = "${var.project_name}-${var.environment}-mysql-og"
   engine_name          = "mysql"
   major_engine_version = "8.0"
@@ -28,11 +28,11 @@ resource "aws_db_option_group" "mysql_og_dev" {
 #----------------------------------------------------------
 # RDS subnet group
 #----------------------------------------------------------
-resource "aws_db_subnet_group" "mysql_sg_dev" {
+resource "aws_db_subnet_group" "mysql_sg" {
   name = "${var.project_name}-${var.environment}-mysql-sg-v2"
   subnet_ids = [
-    aws_subnet.private_subnet_dev_1a.id,
-    aws_subnet.private_subnet_dev_1c.id
+    aws_subnet.private_subnet_1a.id,
+    aws_subnet.private_subnet_1c.id
   ]
 
   tags = {
@@ -50,8 +50,8 @@ resource "random_string" "db_password" {
   special = false
 }
 
-resource "aws_db_instance" "mysql_dev" {
-  identifier = "${var.project_name}-${var.environment}-mysql-dev"
+resource "aws_db_instance" "mysql" {
+  identifier = "${var.project_name}-${var.environment}-mysql"
 
   engine         = "mysql"
   engine_version = "8.0"
@@ -67,14 +67,14 @@ resource "aws_db_instance" "mysql_dev" {
   storage_encrypted     = false
 
   multi_az               = true
-  db_subnet_group_name   = aws_db_subnet_group.mysql_sg_dev.name
-  vpc_security_group_ids = [aws_security_group.db_sg_dev.id]
+  db_subnet_group_name   = aws_db_subnet_group.mysql_sg.name
+  vpc_security_group_ids = [aws_security_group.db_sg.id]
   publicly_accessible    = false
   port                   = 3306
 
   db_name              = "nagoyameshi_db"
-  parameter_group_name = aws_db_parameter_group.mysql_pg_dev.name
-  option_group_name    = aws_db_option_group.mysql_og_dev.name
+  parameter_group_name = aws_db_parameter_group.mysql_pg.name
+  option_group_name    = aws_db_option_group.mysql_og.name
 
   backup_window              = "04:00-05:00"
   backup_retention_period    = 7
@@ -88,7 +88,7 @@ resource "aws_db_instance" "mysql_dev" {
   apply_immediately = true
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-mysql-dev"
+    Name        = "${var.project_name}-${var.environment}-mysql"
     project     = var.project_name
     environment = var.environment
   }

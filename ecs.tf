@@ -1,10 +1,10 @@
 #----------------------------------------------------------
 # ECS cluster
 #----------------------------------------------------------
-resource "aws_ecs_cluster" "ecs_cluster_dev" {
-  name = "${var.project_name}-${var.environment}-ecs-cluster-dev"
+resource "aws_ecs_cluster" "ecs_cluster" {
+  name = "${var.project_name}-${var.environment}-ecs-cluster"
   tags = {
-    Name        = "${var.project_name}-${var.environment}-ecs-cluster-dev"
+    Name        = "${var.project_name}-${var.environment}-ecs-cluster"
     project     = var.project_name
     environment = var.environment
   }
@@ -17,8 +17,8 @@ resource "aws_ecs_cluster" "ecs_cluster_dev" {
 #----------------------------------------------------------
 # ECS task execution role
 #----------------------------------------------------------
-resource "aws_iam_role" "ecs_task_execution_role_dev" {
-  name = "${var.project_name}-${var.environment}-ecs-task-execution-role-dev"
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "${var.project_name}-${var.environment}-ecs-task-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -34,27 +34,27 @@ resource "aws_iam_role" "ecs_task_execution_role_dev" {
   })
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-ecs-task-execution-role-dev"
+    Name        = "${var.project_name}-${var.environment}-ecs-task-execution-role"
     project     = var.project_name
     environment = var.environment
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_dev" {
-  role       = aws_iam_role.ecs_task_execution_role_dev.name
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 # タスク実行ロールにAmazonSSMManagedInstanceCoreを追加
-resource "aws_iam_role_policy_attachment" "ecs_ssm_managed_instance_core_dev" {
-  role       = aws_iam_role.ecs_task_execution_role_dev.name
+resource "aws_iam_role_policy_attachment" "ecs_ssm_managed_instance_core" {
+  role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 # CodePipelineからのECSデプロイ権限を追加
 resource "aws_iam_role_policy" "ecs_task_execution_codepipeline_policy" {
   name = "${var.project_name}-${var.environment}-ecs-task-execution-codepipeline-policy"
-  role = aws_iam_role.ecs_task_execution_role_dev.id
+  role = aws_iam_role.ecs_task_execution_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -77,8 +77,8 @@ resource "aws_iam_role_policy" "ecs_task_execution_codepipeline_policy" {
           "iam:PassRole"
         ]
         Resource = [
-          aws_iam_role.ecs_task_execution_role_dev.arn,
-          aws_iam_role.ecs_task_role_dev.arn
+          aws_iam_role.ecs_task_execution_role.arn,
+          aws_iam_role.ecs_task_role.arn
         ]
       }
     ]
@@ -88,8 +88,8 @@ resource "aws_iam_role_policy" "ecs_task_execution_codepipeline_policy" {
 #----------------------------------------------------------
 # ECS task role for execute command
 #----------------------------------------------------------
-resource "aws_iam_role" "ecs_task_role_dev" {
-  name = "${var.project_name}-${var.environment}-ecs-task-role-dev"
+resource "aws_iam_role" "ecs_task_role" {
+  name = "${var.project_name}-${var.environment}-ecs-task-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -105,15 +105,15 @@ resource "aws_iam_role" "ecs_task_role_dev" {
   })
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-ecs-task-role-dev"
+    Name        = "${var.project_name}-${var.environment}-ecs-task-role"
     project     = var.project_name
     environment = var.environment
   }
 }
 
-resource "aws_iam_role_policy" "ecs_task_role_policy_dev" {
-  name = "${var.project_name}-${var.environment}-ecs-task-role-policy-dev"
-  role = aws_iam_role.ecs_task_role_dev.id
+resource "aws_iam_role_policy" "ecs_task_role_policy" {
+  name = "${var.project_name}-${var.environment}-ecs-task-role-policy"
+  role = aws_iam_role.ecs_task_role.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -136,20 +136,20 @@ resource "aws_iam_role_policy" "ecs_task_role_policy_dev" {
 #----------------------------------------------------------
 # ECS task definition for Laravel application
 #----------------------------------------------------------
-resource "aws_ecs_task_definition" "laravel_app_task_dev" {
-  family                   = "aa-laravel-app-task-dev-neo"
+resource "aws_ecs_task_definition" "laravel_app_task" {
+  family                   = "aa-laravel-app-task-prod-neo"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "256"
   memory                   = "512"
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role_dev.arn
-  task_role_arn            = aws_iam_role.ecs_task_role_dev.arn
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
 
 
   container_definitions = jsonencode([
     {
       name      = "laravel-app"
-      image     = "${aws_ecr_repository.ecr_repository_dev.repository_url}:latest"
+      image     = "181438959772.dkr.ecr.ap-northeast-1.amazonaws.com/nagoyameshi-dev-01-ecr-repository-dev:latest"
       essential = true
       cpu       = 0
       command   = ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=80"]
@@ -174,7 +174,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_dev" {
         },
         {
           name  = "DB_USERNAME"
-          value = aws_db_instance.mysql_dev.username
+          value = aws_db_instance.mysql.username
         },
         {
           name  = "DB_PORT"
@@ -182,7 +182,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_dev" {
         },
         {
           name  = "DB_HOST"
-          value = "nagoyameshi-dev-mysql-dev.cdgeew22q4ur.ap-northeast-1.rds.amazonaws.com"
+          value = aws_db_instance.mysql.endpoint
         },
         {
           name  = "DB_CONNECTION"
@@ -198,7 +198,7 @@ resource "aws_ecs_task_definition" "laravel_app_task_dev" {
         },
         {
           name  = "DB_PASSWORD"
-          value = aws_db_instance.mysql_dev.password
+          value = aws_db_instance.mysql.password
         }
       ]
       logConfiguration = {
@@ -221,72 +221,65 @@ resource "aws_ecs_task_definition" "laravel_app_task_dev" {
   tags = {
     Project     = var.project_name
     Environment = var.environment
-    Name        = "${var.project_name}-${var.environment}-laravel-app-task"
+    Name        = "${var.project_name}-${var.environment}-laravel-app-task-prod"
   }
 }
 
-resource "aws_ecs_service" "ecs_service_dev" {
-  name                   = "aa-laravel-app-task-dev-neo-service-hx2wa01b"
-  cluster                = aws_ecs_cluster.ecs_cluster_dev.id
-  task_definition        = aws_ecs_task_definition.laravel_app_task_dev.arn
-  desired_count          = 1
+resource "aws_ecs_service" "ecs_service" {
+  name                   = "aa-laravel-app-task-prod-neo-service-hx2wa01b"
+  cluster                = aws_ecs_cluster.ecs_cluster.id
+  task_definition        = aws_ecs_task_definition.laravel_app_task.arn
+  desired_count          = 2
   launch_type            = "FARGATE"
   enable_execute_command = true
 
   network_configuration {
-    subnets          = [aws_subnet.private_subnet_dev_1a.id, aws_subnet.private_subnet_dev_1c.id]
-    security_groups  = [aws_security_group.ecs_service_security_group_dev.id]
+    subnets          = [aws_subnet.private_subnet_1a.id, aws_subnet.private_subnet_1c.id]
+    security_groups  = [aws_security_group.ecs_service_security_group.id]
     assign_public_ip = false
   }
 
   # ALBとの連携を追加
   load_balancer {
-    target_group_arn = aws_lb_target_group.alb_tg_dev_v2.arn
+    target_group_arn = aws_lb_target_group.alb_tg_v2.arn
     container_name   = "laravel-app"
-    container_port   = 80
+    container_port   =80
   }
 
-  depends_on = [aws_lb_listener.alb_listener_dev_v2]
+  depends_on = [aws_lb_listener.alb_listener_v2]
+
+  # Auto Scaling設定
+  deployment_maximum_percent         = 200
+  deployment_minimum_healthy_percent = 100
 }
 
 #----------------------------------------------------------
-# ECR repository
+# ECS Auto Scaling
 #----------------------------------------------------------
-resource "aws_ecr_repository" "ecr_repository_dev" {
-  name                 = "${var.project_name}-${var.environment}-ecr-repository-dev"
-  image_tag_mutability = "MUTABLE"
-  image_scanning_configuration { scan_on_push = true }
+resource "aws_appautoscaling_target" "ecs_target" {
+  max_capacity       = 4
+  min_capacity       = 2
+  resource_id        = "service/${aws_ecs_cluster.ecs_cluster.name}/${aws_ecs_service.ecs_service.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
 
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-ecr-repository-dev"
-    project     = var.project_name
-    environment = var.environment
+resource "aws_appautoscaling_policy" "ecs_policy" {
+  name               = "${var.project_name}-${var.environment}-ecs-autoscaling-policy"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value = 70.0
   }
 }
 
-#----------------------------------------------------------
-# ECR lifecycle policy
-#----------------------------------------------------------
-resource "aws_ecr_lifecycle_policy" "ecr_lifecycle_policy_dev" {
-  repository = aws_ecr_repository.ecr_repository_dev.name
 
-  policy = jsonencode({
-    rules = [
-      {
-        rulePriority = 1,
-        description  = "Keep only the last 10 images",
-        selection = {
-          tagStatus   = "any"
-          countType   = "imageCountMoreThan"
-          countNumber = 10
-        },
-        action = {
-          type = "expire"
-        }
-      }
-    ]
-  })
-}
 
 #----------------------------------------------------------
 # CodePipeline IAM Role
@@ -362,8 +355,8 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
           "iam:PassRole"
         ]
         Resource = [
-          aws_iam_role.ecs_task_execution_role_dev.arn,
-          aws_iam_role.ecs_task_role_dev.arn
+          aws_iam_role.ecs_task_execution_role.arn,
+          aws_iam_role.ecs_task_role.arn
         ]
       },
       {

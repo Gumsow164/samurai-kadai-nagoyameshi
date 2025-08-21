@@ -2,10 +2,10 @@
 # Security Group
 #----------------------------------------------------------
 # web
-resource "aws_security_group" "web_sg_dev" {
+resource "aws_security_group" "web_sg" {
   name        = "${var.project_name}-${var.environment}-web-sg"
   description = "web front role security group"
-  vpc_id      = aws_vpc.vpc_dev.id
+  vpc_id      = aws_vpc.vpc.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-web-sg"
@@ -20,7 +20,7 @@ resource "aws_security_group_rule" "web_sg_inbound_http" {
   to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.web_sg_dev.id
+  security_group_id = aws_security_group.web_sg.id
 }
 
 resource "aws_security_group_rule" "web_sg_inbound_https" {
@@ -29,7 +29,7 @@ resource "aws_security_group_rule" "web_sg_inbound_https" {
   to_port           = 443
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.web_sg_dev.id
+  security_group_id = aws_security_group.web_sg.id
 }
 
 resource "aws_security_group_rule" "web_out_tcp3000" {
@@ -37,8 +37,8 @@ resource "aws_security_group_rule" "web_out_tcp3000" {
   from_port                = 3000
   to_port                  = 3000
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.app_sg_dev.id
-  security_group_id        = aws_security_group.web_sg_dev.id
+  source_security_group_id = aws_security_group.app_sg.id
+  security_group_id        = aws_security_group.web_sg.id
 }
 
 resource "aws_security_group_rule" "web_out_tcp80" {
@@ -46,8 +46,8 @@ resource "aws_security_group_rule" "web_out_tcp80" {
   from_port                = 80
   to_port                  = 80
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.app_sg_dev.id
-  security_group_id        = aws_security_group.web_sg_dev.id
+  source_security_group_id = aws_security_group.app_sg.id
+  security_group_id        = aws_security_group.web_sg.id
 }
 
 resource "aws_security_group_rule" "web_sg_egress_all" {
@@ -56,16 +56,16 @@ resource "aws_security_group_rule" "web_sg_egress_all" {
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.web_sg_dev.id
+  security_group_id = aws_security_group.web_sg.id
 }
 
 
 
 # app security group
-resource "aws_security_group" "app_sg_dev" {
+resource "aws_security_group" "app_sg" {
   name        = "${var.project_name}-${var.environment}-app-sg"
   description = "application server role security group"
-  vpc_id      = aws_vpc.vpc_dev.id
+  vpc_id      = aws_vpc.vpc.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-app-sg"
@@ -79,8 +79,8 @@ resource "aws_security_group_rule" "app_in_tcp3000" {
   from_port                = 3000
   to_port                  = 3000
   protocol                 = "tcp"
-  security_group_id        = aws_security_group.app_sg_dev.id
-  source_security_group_id = aws_security_group.web_sg_dev.id
+  security_group_id        = aws_security_group.app_sg.id
+  source_security_group_id = aws_security_group.web_sg.id
 }
 
 resource "aws_security_group_rule" "app_out_http" {
@@ -88,7 +88,7 @@ resource "aws_security_group_rule" "app_out_http" {
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
-  security_group_id = aws_security_group.app_sg_dev.id
+  security_group_id = aws_security_group.app_sg.id
   prefix_list_ids   = [data.aws_prefix_list.s3_pl.id]
 }
 
@@ -97,7 +97,7 @@ resource "aws_security_group_rule" "app_out_https" {
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
-  security_group_id = aws_security_group.app_sg_dev.id
+  security_group_id = aws_security_group.app_sg.id
   prefix_list_ids   = [data.aws_prefix_list.s3_pl.id]
 }
 
@@ -106,15 +106,15 @@ resource "aws_security_group_rule" "app_out_tcp3306" {
   from_port                = 3306
   to_port                  = 3306
   protocol                 = "tcp"
-  security_group_id        = aws_security_group.app_sg_dev.id
-  source_security_group_id = aws_security_group.db_sg_dev.id
+  security_group_id        = aws_security_group.app_sg.id
+  source_security_group_id = aws_security_group.db_sg.id
 }
 
 # opmng security group
-resource "aws_security_group" "opmng_sg_dev" {
+resource "aws_security_group" "opmng_sg" {
   name        = "${var.project_name}-${var.environment}-opmng-sg"
   description = "operation and management role security group"
-  vpc_id      = aws_vpc.vpc_dev.id
+  vpc_id      = aws_vpc.vpc.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-opmng-sg"
@@ -129,7 +129,7 @@ resource "aws_security_group_rule" "opmng_sg_in_ssh" {
   to_port           = 22
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.opmng_sg_dev.id
+  security_group_id = aws_security_group.opmng_sg.id
 }
 
 resource "aws_security_group_rule" "opmng_sg_in_tcp3000" {
@@ -138,7 +138,7 @@ resource "aws_security_group_rule" "opmng_sg_in_tcp3000" {
   to_port           = 3000
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.opmng_sg_dev.id
+  security_group_id = aws_security_group.opmng_sg.id
 }
 
 resource "aws_security_group_rule" "opmng_sg_out_http" {
@@ -147,7 +147,7 @@ resource "aws_security_group_rule" "opmng_sg_out_http" {
   to_port           = 80
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.opmng_sg_dev.id
+  security_group_id = aws_security_group.opmng_sg.id
 }
 
 resource "aws_security_group_rule" "opmng_sg_out_https" {
@@ -156,14 +156,14 @@ resource "aws_security_group_rule" "opmng_sg_out_https" {
   to_port           = 443
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.opmng_sg_dev.id
+  security_group_id = aws_security_group.opmng_sg.id
 }
 
 # db security group
-resource "aws_security_group" "db_sg_dev" {
+resource "aws_security_group" "db_sg" {
   name        = "${var.project_name}-${var.environment}-db-sg"
   description = "database role security group"
-  vpc_id      = aws_vpc.vpc_dev.id
+  vpc_id      = aws_vpc.vpc.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-db-sg"
@@ -177,8 +177,8 @@ resource "aws_security_group_rule" "db_sg_tcp3306" {
   from_port                = 3306
   to_port                  = 3306
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.app_sg_dev.id
-  security_group_id        = aws_security_group.db_sg_dev.id
+  source_security_group_id = aws_security_group.app_sg.id
+  security_group_id        = aws_security_group.db_sg.id
 }
 
 # 踏み台サーバーからRDSへのアクセスを許可
@@ -187,8 +187,8 @@ resource "aws_security_group_rule" "db_sg_tcp3306_from_opmng" {
   from_port                = 3306
   to_port                  = 3306
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.opmng_sg_dev.id
-  security_group_id        = aws_security_group.db_sg_dev.id
+  source_security_group_id = aws_security_group.opmng_sg.id
+  security_group_id        = aws_security_group.db_sg.id
 }
 
 resource "aws_security_group_rule" "db_sg_tcp3306_from_ecs" {
@@ -196,25 +196,25 @@ resource "aws_security_group_rule" "db_sg_tcp3306_from_ecs" {
   from_port                = 3306
   to_port                  = 3306
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.ecs_service_security_group_dev.id
-  security_group_id        = aws_security_group.db_sg_dev.id
+  source_security_group_id = aws_security_group.ecs_service_security_group.id
+  security_group_id        = aws_security_group.db_sg.id
 }
 
 
 #----------------------------------------------------------
 # ECS service security group
 #----------------------------------------------------------
-resource "aws_security_group" "ecs_service_security_group_dev" {
+resource "aws_security_group" "ecs_service_security_group" {
   name        = "${var.project_name}-${var.environment}-ecs-service-sg"
   description = "Security group for ECS service"
-  vpc_id      = aws_vpc.vpc_dev.id
+  vpc_id      = aws_vpc.vpc.id
 
   ingress {
     description     = "HTTP from ALB"
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
-    security_groups = [aws_security_group.web_sg_dev.id]
+    security_groups = [aws_security_group.web_sg.id]
   }
 
   ingress {
@@ -222,7 +222,7 @@ resource "aws_security_group" "ecs_service_security_group_dev" {
     from_port       = 443
     to_port         = 443
     protocol        = "tcp"
-    security_groups = [aws_security_group.web_sg_dev.id]
+    security_groups = [aws_security_group.web_sg.id]
   }
 
 

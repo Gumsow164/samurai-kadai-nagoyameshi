@@ -1,12 +1,12 @@
 #----------------------------------------------------------
 # Application Load Balancer
 #----------------------------------------------------------
-resource "aws_lb" "alb_dev" {
+resource "aws_lb" "alb" {
   name               = "${var.project_name}-${var.environment}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.web_sg_dev.id]
-  subnets            = [aws_subnet.public_subnet_dev_1a.id, aws_subnet.public_subnet_dev_1c.id]
+  security_groups    = [aws_security_group.web_sg.id]
+  subnets            = [aws_subnet.public_subnet_1a.id, aws_subnet.public_subnet_1c.id]
 
   enable_deletion_protection = false
 
@@ -20,11 +20,11 @@ resource "aws_lb" "alb_dev" {
 #----------------------------------------------------------
 # ALB Target Group
 #----------------------------------------------------------
-resource "aws_lb_target_group" "alb_tg_dev_v2" {
+resource "aws_lb_target_group" "alb_tg_v2" {
   name        = "${var.project_name}-${var.environment}-tg-v2"
   port        = 80
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.vpc_dev.id
+  vpc_id      = aws_vpc.vpc.id
   target_type = "ip"
 
   health_check {
@@ -39,6 +39,14 @@ resource "aws_lb_target_group" "alb_tg_dev_v2" {
     unhealthy_threshold = 2
   }
 
+  # Auto Scaling対応のための設定
+  deregistration_delay = 30
+  stickiness {
+    type            = "lb_cookie"
+    cookie_duration = 86400
+    enabled         = true
+  }
+
   tags = {
     Name        = "${var.project_name}-${var.environment}-tg-v2"
     project     = var.project_name
@@ -49,8 +57,8 @@ resource "aws_lb_target_group" "alb_tg_dev_v2" {
 #----------------------------------------------------------
 # ALB Listener (HTTP)
 #----------------------------------------------------------
-resource "aws_lb_listener" "alb_listener_dev_v2" {
-  load_balancer_arn = aws_lb.alb_dev.arn
+resource "aws_lb_listener" "alb_listener_v2" {
+  load_balancer_arn = aws_lb.alb.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -74,7 +82,7 @@ resource "aws_lb_listener" "alb_listener_dev_v2" {
 # ALB Listener (HTTPS)
 #----------------------------------------------------------
 resource "aws_lb_listener" "alb_listener_https" {
-  load_balancer_arn = aws_lb.alb_dev.arn
+  load_balancer_arn = aws_lb.alb.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
@@ -82,7 +90,7 @@ resource "aws_lb_listener" "alb_listener_https" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.alb_tg_dev_v2.arn
+    target_group_arn = aws_lb_target_group.alb_tg_v2.arn
   }
 
   tags = {

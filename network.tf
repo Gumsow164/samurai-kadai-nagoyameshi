@@ -1,7 +1,7 @@
 #----------------------------------------------------------
 # VPC
 #----------------------------------------------------------
-resource "aws_vpc" "vpc_dev" {
+resource "aws_vpc" "vpc" {
   cidr_block                       = "192.168.0.0/20"
   instance_tenancy                 = "default"
   enable_dns_support               = true
@@ -18,8 +18,8 @@ resource "aws_vpc" "vpc_dev" {
 #----------------------------------------------------------
 # Subnet
 #----------------------------------------------------------
-resource "aws_subnet" "public_subnet_dev_1a" {
-  vpc_id                  = aws_vpc.vpc_dev.id
+resource "aws_subnet" "public_subnet_1a" {
+  vpc_id                  = aws_vpc.vpc.id
   cidr_block              = "192.168.1.0/24"
   availability_zone       = "ap-northeast-1a"
   map_public_ip_on_launch = true
@@ -32,8 +32,8 @@ resource "aws_subnet" "public_subnet_dev_1a" {
   }
 }
 
-resource "aws_subnet" "public_subnet_dev_1c" {
-  vpc_id                  = aws_vpc.vpc_dev.id
+resource "aws_subnet" "public_subnet_1c" {
+  vpc_id                  = aws_vpc.vpc.id
   cidr_block              = "192.168.2.0/24"
   availability_zone       = "ap-northeast-1c"
   map_public_ip_on_launch = true
@@ -46,8 +46,8 @@ resource "aws_subnet" "public_subnet_dev_1c" {
   }
 }
 
-resource "aws_subnet" "private_subnet_dev_1a" {
-  vpc_id                  = aws_vpc.vpc_dev.id
+resource "aws_subnet" "private_subnet_1a" {
+  vpc_id                  = aws_vpc.vpc.id
   cidr_block              = "192.168.4.0/24"
   availability_zone       = "ap-northeast-1a"
   map_public_ip_on_launch = false
@@ -59,8 +59,8 @@ resource "aws_subnet" "private_subnet_dev_1a" {
     type        = "private"
   }
 }
-resource "aws_subnet" "private_subnet_dev_1c" {
-  vpc_id                  = aws_vpc.vpc_dev.id
+resource "aws_subnet" "private_subnet_1c" {
+  vpc_id                  = aws_vpc.vpc.id
   cidr_block              = "192.168.3.0/24"
   availability_zone       = "ap-northeast-1c"
   map_public_ip_on_launch = false
@@ -75,8 +75,8 @@ resource "aws_subnet" "private_subnet_dev_1c" {
 #----------------------------------------------------------
 # Route Table
 #----------------------------------------------------------
-resource "aws_route_table" "public_route_table_dev_1a" {
-  vpc_id = aws_vpc.vpc_dev.id
+resource "aws_route_table" "public_route_table_1a" {
+  vpc_id = aws_vpc.vpc.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-public-route-table"
@@ -86,13 +86,13 @@ resource "aws_route_table" "public_route_table_dev_1a" {
   }
 }
 
-resource "aws_route_table_association" "public_route_table_dev_1a" {
-  route_table_id = aws_route_table.public_route_table_dev_1a.id
-  subnet_id      = aws_subnet.public_subnet_dev_1a.id
+resource "aws_route_table_association" "public_route_table_1a" {
+  route_table_id = aws_route_table.public_route_table_1a.id
+  subnet_id      = aws_subnet.public_subnet_1a.id
 }
 
-resource "aws_route_table" "public_route_table_dev_1c" {
-  vpc_id = aws_vpc.vpc_dev.id
+resource "aws_route_table" "public_route_table_1c" {
+  vpc_id = aws_vpc.vpc.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-public-route-table"
@@ -102,13 +102,13 @@ resource "aws_route_table" "public_route_table_dev_1c" {
   }
 }
 
-resource "aws_route_table_association" "public_route_table_dev_1c" {
-  route_table_id = aws_route_table.public_route_table_dev_1c.id
-  subnet_id      = aws_subnet.public_subnet_dev_1c.id
+resource "aws_route_table_association" "public_route_table_1c" {
+  route_table_id = aws_route_table.public_route_table_1c.id
+  subnet_id      = aws_subnet.public_subnet_1c.id
 }
 
-resource "aws_route_table" "private_route_table_dev_1a" {
-  vpc_id = aws_vpc.vpc_dev.id
+resource "aws_route_table" "private_route_table_1a" {
+  vpc_id = aws_vpc.vpc.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-private-route-table-1a"
@@ -118,13 +118,13 @@ resource "aws_route_table" "private_route_table_dev_1a" {
   }
 }
 
-resource "aws_route_table_association" "private_route_table_dev_1a" {
-  route_table_id = aws_route_table.private_route_table_dev_1a.id
-  subnet_id      = aws_subnet.private_subnet_dev_1a.id
+resource "aws_route_table_association" "private_route_table_1a" {
+  route_table_id = aws_route_table.private_route_table_1a.id
+  subnet_id      = aws_subnet.private_subnet_1a.id
 }
 
-resource "aws_route_table" "private_route_table_dev_1c" {
-  vpc_id = aws_vpc.vpc_dev.id
+resource "aws_route_table" "private_route_table_1c" {
+  vpc_id = aws_vpc.vpc.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-private-route-table-1c"
@@ -134,16 +134,16 @@ resource "aws_route_table" "private_route_table_dev_1c" {
   }
 }
 
-resource "aws_route_table_association" "private_route_table_dev_1c" {
-  route_table_id = aws_route_table.private_route_table_dev_1c.id
-  subnet_id      = aws_subnet.private_subnet_dev_1c.id
+resource "aws_route_table_association" "private_route_table_1c" {
+  route_table_id = aws_route_table.private_route_table_1c.id
+  subnet_id      = aws_subnet.private_subnet_1c.id
 }
 
 #----------------------------------------------------------
 # Internet Gateway
 #----------------------------------------------------------
-resource "aws_internet_gateway" "igw_dev" {
-  vpc_id = aws_vpc.vpc_dev.id
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.vpc.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-igw"
@@ -152,22 +152,22 @@ resource "aws_internet_gateway" "igw_dev" {
   }
 }
 
-resource "aws_route" "public_rt_igw_dev_1a" {
-  route_table_id         = aws_route_table.public_route_table_dev_1a.id
+resource "aws_route" "public_rt_igw_1a" {
+  route_table_id         = aws_route_table.public_route_table_1a.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw_dev.id
+  gateway_id             = aws_internet_gateway.igw.id
 }
 
-resource "aws_route" "public_rt_igw_dev_1c" {
-  route_table_id         = aws_route_table.public_route_table_dev_1c.id
+resource "aws_route" "public_rt_igw_1c" {
+  route_table_id         = aws_route_table.public_route_table_1c.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw_dev.id
+  gateway_id             = aws_internet_gateway.igw.id
 }
 
 #----------------------------------------------------------
 # NAT Gateway
 #----------------------------------------------------------
-resource "aws_eip" "nat_eip_dev" {
+resource "aws_eip" "nat_eip" {
   domain = "vpc"
   
   tags = {
@@ -177,9 +177,9 @@ resource "aws_eip" "nat_eip_dev" {
   }
 }
 
-resource "aws_nat_gateway" "nat_gateway_dev" {
-  allocation_id = aws_eip.nat_eip_dev.id
-  subnet_id     = aws_subnet.public_subnet_dev_1a.id
+resource "aws_nat_gateway" "nat_gateway" {
+  allocation_id = aws_eip.nat_eip.id
+  subnet_id     = aws_subnet.public_subnet_1a.id
 
   tags = {
     Name        = "${var.project_name}-${var.environment}-nat-gateway"
@@ -187,20 +187,20 @@ resource "aws_nat_gateway" "nat_gateway_dev" {
     environment = var.environment
   }
 
-  depends_on = [aws_internet_gateway.igw_dev]
+  depends_on = [aws_internet_gateway.igw]
 }
 
 #----------------------------------------------------------
 # Private Route Table Routes (NAT Gateway)
 #----------------------------------------------------------
-resource "aws_route" "private_rt_nat_dev_1a" {
-  route_table_id         = aws_route_table.private_route_table_dev_1a.id
+resource "aws_route" "private_rt_nat_1a" {
+  route_table_id         = aws_route_table.private_route_table_1a.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat_gateway_dev.id
+  nat_gateway_id         = aws_nat_gateway.nat_gateway.id
 }
 
-resource "aws_route" "private_rt_nat_dev_1c" {
-  route_table_id         = aws_route_table.private_route_table_dev_1c.id
+resource "aws_route" "private_rt_nat_1c" {
+  route_table_id         = aws_route_table.private_route_table_1c.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat_gateway_dev.id
+  nat_gateway_id         = aws_nat_gateway.nat_gateway.id
 }
