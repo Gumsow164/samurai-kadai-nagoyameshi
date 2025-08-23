@@ -137,7 +137,7 @@ resource "aws_iam_role_policy" "ecs_task_role_policy" {
 # ECS task definition for Laravel application
 #----------------------------------------------------------
 resource "aws_ecs_task_definition" "laravel_app_task" {
-  family                   = "aa-laravel-app-task-prod-neo"
+  family                   = "aa-aa-aa-laravel-app-task-prod"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "256"
