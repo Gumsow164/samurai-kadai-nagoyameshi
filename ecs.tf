@@ -194,7 +194,7 @@ resource "aws_ecs_task_definition" "laravel_app_task" {
         },
         {
           name  = "DB_DATABASE"
-          value = "nagoyameshi_db"
+          value = "nagoyameshi_prod"
         },
         {
           name  = "DB_PASSWORD"

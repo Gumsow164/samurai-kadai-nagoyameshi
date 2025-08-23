@@ -36,3 +36,19 @@ variable "project_name" {
 variable "environment" {
   type = string
 }
+
+#----------------------------------------------------------
+# outputs
+#----------------------------------------------------------
+output "db_password" {
+  value     = random_string.db_password.result
+  sensitive = true
+}
+
+output "db_endpoint" {
+  value = aws_db_instance.mysql.endpoint
+}
+
+output "alb_dns_name" {
+  value = aws_lb.alb.dns_name
+}

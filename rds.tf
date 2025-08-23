@@ -72,7 +72,7 @@ resource "aws_db_instance" "mysql" {
   publicly_accessible    = false
   port                   = 3306
 
-  db_name              = "nagoyameshi_db"
+  db_name              = "nagoyameshi_prod"
   parameter_group_name = aws_db_parameter_group.mysql_pg.name
   option_group_name    = aws_db_option_group.mysql_og.name
 
@@ -81,7 +81,7 @@ resource "aws_db_instance" "mysql" {
   maintenance_window         = "Mon:05:00-Mon:08:00"
   auto_minor_version_upgrade = false
 
-  deletion_protection = true
+  deletion_protection = false
   skip_final_snapshot = false
   final_snapshot_identifier = "${var.project_name}-${var.environment}-mysql-final-snapshot"
 
